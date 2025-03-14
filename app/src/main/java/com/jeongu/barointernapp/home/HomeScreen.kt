@@ -95,7 +95,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
             exit = fadeOut(),
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 15.dp, bottom = 20.dp)
+                .padding(end = 16.dp, bottom = 20.dp)
         ) {
             ScrollToTopButton {
                 coroutineScope.launch {
@@ -116,7 +116,7 @@ fun ProductItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 15.dp, vertical = 10.dp)
+            .padding(horizontal = 16.dp, vertical = 10.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
