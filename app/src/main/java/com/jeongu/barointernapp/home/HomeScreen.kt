@@ -17,15 +17,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.jeongu.barointernapp.Product
+import com.jeongu.barointernapp.SampleProduct
 
 @Composable
 fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
-    val productList by viewModel.productList.collectAsState()
+    val productList by viewModel.sampleProductList.collectAsState()
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(productList) { product ->
-            ProductItem(product = product, onClick = {
+            ProductItem(sampleProduct = product, onClick = {
                 navController.navigate("product_detail/${product.id}")
             })
         }
@@ -33,14 +33,14 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
 }
 
 @Composable
-fun ProductItem(product: Product, onClick: () -> Unit) {
+fun ProductItem(sampleProduct: SampleProduct, onClick: () -> Unit) {
     Card(modifier = Modifier
         .fillMaxWidth()
         .padding(8.dp)
         .clickable { onClick() }) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = product.name, style = MaterialTheme.typography.titleMedium)
-            Text(text = "${product.price}원", style = MaterialTheme.typography.bodyMedium)
+            Text(text = sampleProduct.title, style = MaterialTheme.typography.titleMedium)
+            Text(text = "${sampleProduct.price}원", style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
