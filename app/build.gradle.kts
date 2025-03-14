@@ -64,6 +64,10 @@ dependencies {
     implementation(libs.androidx.lifecycle.service)
     ksp(libs.hilt.android.compiler)
 
+    // Room
+    implementation(libs.room)
+    annotationProcessor(libs.room.compiler)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
