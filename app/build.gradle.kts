@@ -53,6 +53,10 @@ dependencies {
     // Jetpack Navigation
     implementation(libs.androidx.navigation.compose)
 
+    // Network
+    implementation(libs.bundles.retrofit)
+    implementation(platform(libs.okhttp.bom))
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
