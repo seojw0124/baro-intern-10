@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.devtools.ksp)
+    alias(libs.plugins.dagger.hilt.android)
 }
 
 android {
@@ -57,6 +58,11 @@ dependencies {
     // Network
     implementation(libs.bundles.retrofit)
     implementation(platform(libs.okhttp.bom))
+
+    // Dagger-Hilt
+    implementation(libs.hilt.android)
+    implementation(libs.androidx.lifecycle.service)
+    ksp(libs.hilt.android.compiler)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
