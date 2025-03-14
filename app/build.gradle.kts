@@ -54,6 +54,7 @@ dependencies {
 
     // Jetpack Navigation
     implementation(libs.androidx.navigation.compose)
+    implementation (libs.androidx.hilt.navigation.compose)
 
     // Network
     implementation(libs.bundles.retrofit)
