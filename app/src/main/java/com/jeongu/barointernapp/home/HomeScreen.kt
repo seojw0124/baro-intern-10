@@ -5,16 +5,22 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -32,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -48,7 +55,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
-    val productList by viewModel.sampleProductList.collectAsState()
+    val productList by viewModel.productList.collectAsState()
+    val likedMap by viewModel.likedMap.collectAsState()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -69,9 +77,14 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                     .weight(1f)
             ) {
                 items(productList) { product ->
-                    ProductItem(product = product, onClick = {
-                        navController.navigate("product_detail/${product.id}")
-                    })
+                    ProductItem(
+                        product = product,
+                        isLiked = likedMap[product.id] ?: false,
+                        onLikeClick = { viewModel.toggleLike(product.id) },
+                        onClick = {
+                            navController.navigate("product_detail/${product.id}")
+                        }
+                    )
                 }
             }
         }
@@ -94,7 +107,12 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
 }
 
 @Composable
-fun ProductItem(product: SampleProduct, onClick: () -> Unit) {
+fun ProductItem(
+    product: SampleProduct,
+    isLiked: Boolean,
+    onLikeClick: () -> Unit,
+    onClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -104,44 +122,63 @@ fun ProductItem(product: SampleProduct, onClick: () -> Unit) {
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .padding(10.dp)) {
-
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 130.dp) // 최소 높이만 설정하고 최대 높이는 제한하지 않음
+        ) {
+            // 이미지 크기는 130dp 유지
             Image(
                 painter = painterResource(product.image),
                 contentDescription = stringResource(id = R.string.description_product_thumbnail),
-                modifier = Modifier.size(80.dp),
+                modifier = Modifier
+                    .size(130.dp)
+                    .clip(RoundedCornerShape(10.dp)),
                 contentScale = ContentScale.Crop
             )
 
-            Spacer(modifier = Modifier.width(12.dp))
+            // 오른쪽 콘텐츠 영역
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.SpaceBetween // 콘텐츠와 아이콘 사이 공간 분배
+            ) {
+                // 상단 콘텐츠 영역
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        text = product.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = product.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
+                    Spacer(modifier = Modifier.height(4.dp))
 
-                Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "고양시 일산동구",
+                        style = MaterialTheme.typography.bodySmall
+                    )
 
-                Text(
-                    text = "고양시 일산동구",
-                    style = MaterialTheme.typography.bodySmall
-                )
+                    Spacer(modifier = Modifier.height(4.dp))
 
-                Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "${product.price}원",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
 
-                Text(
-                    text = "${product.price}원",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                // 하단 아이콘 영역
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp), // 상단 콘텐츠와 간격 유지
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_comment),
                         contentDescription = stringResource(id = R.string.description_comment_icon),
@@ -152,10 +189,9 @@ fun ProductItem(product: SampleProduct, onClick: () -> Unit) {
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    Icon(
-                        painter = painterResource(R.drawable.ic_like_filled),
-                        contentDescription = stringResource(id = R.string.description_like_icon),
-                        modifier = Modifier.size(20.dp)
+                    LikeIcon(
+                        isLiked = isLiked,
+                        onClick = onLikeClick
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(text = "26")
@@ -163,4 +199,26 @@ fun ProductItem(product: SampleProduct, onClick: () -> Unit) {
             }
         }
     }
+}
+
+@Composable
+fun LikeIcon(
+    isLiked: Boolean,
+    onClick: () -> Unit
+) {
+    val iconRes = if (isLiked) R.drawable.ic_like_filled else R.drawable.ic_like_outlined
+
+    Icon(
+        painter = painterResource(id = iconRes),
+        contentDescription = stringResource(R.string.description_like_icon),
+        modifier = Modifier
+            .size(20.dp)
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+                onClick()
+            },
+        tint = Color.Unspecified
+    )
 }

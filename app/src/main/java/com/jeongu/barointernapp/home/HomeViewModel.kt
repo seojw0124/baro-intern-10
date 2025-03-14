@@ -10,6 +10,16 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor() : ViewModel() {
-    private val _Sample_productList = MutableStateFlow<List<SampleProduct>>(Storage.SampleSampleProductLists)
-    val sampleProductList: StateFlow<List<SampleProduct>> = _Sample_productList
+    private val _productList = MutableStateFlow<List<SampleProduct>>(Storage.SampleSampleProductLists)
+    val productList: StateFlow<List<SampleProduct>> = _productList
+
+    private val _likedMap = MutableStateFlow<Map<Int, Boolean>>(emptyMap())
+    val likedMap: StateFlow<Map<Int, Boolean>> = _likedMap
+
+    fun toggleLike(productId: Int) {
+        val current = _likedMap.value[productId] ?: false
+        _likedMap.value = _likedMap.value.toMutableMap().apply {
+            put(productId, !current)
+        }
+    }
 }

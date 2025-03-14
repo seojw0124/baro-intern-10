@@ -6,7 +6,7 @@ object Storage {
         SampleProduct(
             id = 1,
             image = R.drawable.img_product_01,
-            title = "아이폰 12 Pro Max",
+            title = "아이폰 12 Pro Maxㅁㄴㅇㄹㅁㄴㄹㅁㄴㄹㅁㄴㅇㄹㅁㄴㅇㅁㅇㄴㄹ",
             introduction = "아이폰 12 Pro Max 256GB 실버 팝니다.",
             sellerName = "김애플",
             price = 1500000,

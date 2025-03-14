@@ -1,8 +1,16 @@
 <resources>
     <string name="app_name">BaroInternApp</string>
 
+    <!-- Common -->
+    <string name="description_like_icon">좋아요 아이콘 이미지</string>
+
     <!--  Toolbar -->
     <string name="description_notification_icon">알림 아이콘 이미지</string>
+
+    <!--  MainActivity -->
+    <string name="description_scroll_to_top_icon">위로 스크롤하는 아이콘 이미지</string>
+    <string name="description_product_thumbnail">상품 썸네일 이미지</string>
+    <string name="description_comment_icon">댓글 아이콘 이미지</string>
 
     <!-- Dummy Data -->
     <string name="data_product_01_title">산지 한달된 선풍기 팝니다</string>
