@@ -29,6 +29,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -70,6 +73,8 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
+    val snackbarHostState = remember { SnackbarHostState() }
+
     val showScrollToTop by remember {
         derivedStateOf {
             listState.firstVisibleItemIndex > 0
@@ -91,90 +96,106 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            HomeToolbar()
-
-            when (uiState) {
-                is HomeUiState.Loading -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .weight(1f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-
-                is HomeUiState.Success -> {
-                    val products = (uiState as HomeUiState.Success).products
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .weight(1f)
-                    ) {
-                        items(products) { product ->
-                            ProductItem(
-                                product = product,
-                                isLiked = likedMap[product.id] ?: false,
-                                likeCount = likeCountMap[product.id] ?: product.likeCount, // 실시간 좋아요 수 전달
-                                onLikeClick = { viewModel.toggleLike(product.id) },
-                                onClick = {
-                                    // 현재 최신 좋아요 상태를 반영한 제품 객체 생성
-                                    val updatedProduct = product.copy(
-                                        isLiked = likedMap[product.id] ?: false,
-                                        likeCount = likeCountMap[product.id] ?: product.likeCount
-                                    )
-
-                                    // 업데이트된 제품 객체를 savedStateHandle에 저장
-                                    navController.currentBackStackEntry?.savedStateHandle?.set("product", updatedProduct)
-                                    navController.navigate("product_detail/${product.id}")
-                                }
-                            )
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                HomeToolbar(
+                    onNotificationClick = {
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar("새로운 알림이 없습니다.")
                         }
                     }
-                }
+                )
 
-                is HomeUiState.Error -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .weight(1f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                when (uiState) {
+                    is HomeUiState.Loading -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .weight(1f),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = (uiState as HomeUiState.Error).message,
-                                style = MaterialTheme.typography.bodyLarge,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(horizontal = 24.dp)
-                            )
+                            CircularProgressIndicator()
+                        }
+                    }
 
-                            Button(onClick = { viewModel.loadProducts() }) {
-                                Text("다시 시도")
+                    // 나머지 코드는 동일
+                    is HomeUiState.Success -> {
+                        val products = (uiState as HomeUiState.Success).products
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .weight(1f)
+                        ) {
+                            items(products) { product ->
+                                ProductItem(
+                                    product = product,
+                                    isLiked = likedMap[product.id] ?: false,
+                                    likeCount = likeCountMap[product.id] ?: product.likeCount,
+                                    onLikeClick = { viewModel.toggleLike(product.id) },
+                                    onClick = {
+                                        // 최신 좋아요 상태가 반영된 제품 객체 생성
+                                        val updatedProduct = product.copy(
+                                            isLiked = likedMap[product.id] ?: false,
+                                            likeCount = likeCountMap[product.id] ?: product.likeCount
+                                        )
+                                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                                            "product",
+                                            updatedProduct
+                                        )
+                                        navController.navigate("product_detail/${product.id}")
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    is HomeUiState.Error -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .weight(1f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                Text(
+                                    text = (uiState as HomeUiState.Error).message,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(horizontal = 24.dp)
+                                )
+
+                                Button(onClick = { viewModel.loadProducts() }) {
+                                    Text("다시 시도")
+                                }
                             }
                         }
                     }
                 }
             }
-        }
 
-        AnimatedVisibility(
-            visible = showScrollToTop,
-            enter = fadeIn(),
-            exit = fadeOut(),
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = 20.dp)
-        ) {
-            ScrollToTopButton {
-                coroutineScope.launch {
-                    listState.animateScrollToItem(0)
+            AnimatedVisibility(
+                visible = showScrollToTop,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 16.dp, bottom = 20.dp)
+            ) {
+                ScrollToTopButton {
+                    coroutineScope.launch {
+                        listState.animateScrollToItem(0)
+                    }
                 }
             }
         }
