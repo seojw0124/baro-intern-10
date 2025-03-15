@@ -59,6 +59,8 @@ import com.jeongu.barointernapp.presentation.model.HomeUiState
 import com.jeongu.barointernapp.presentation.model.ProductModel
 import com.jeongu.barointernapp.presentation.viewmodel.home.HomeViewModel
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 
 @Composable
 fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
@@ -239,7 +241,10 @@ fun ProductItem(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
-                        text = "${product.price}원",
+                        text = stringResource(
+                            R.string.format_prodcut_price,
+                            NumberFormat.getNumberInstance(Locale.KOREA).format(product.price)
+                        ),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }

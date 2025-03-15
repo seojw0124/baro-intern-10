@@ -320,7 +320,10 @@ fun BottomActionBar(
 
             // 가격 정보
             Text(
-                text = "${NumberFormat.getNumberInstance(Locale.KOREA).format(price)}원",
+                text = stringResource(
+                    R.string.format_prodcut_price,
+                    NumberFormat.getNumberInstance(Locale.KOREA).format(price)
+                ),
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold
                 ),
