@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jeongu.barointernapp.SampleProduct
 import com.jeongu.barointernapp.Storage
+import com.jeongu.barointernapp.domain.usecase.DeleteProductUseCase
 import com.jeongu.barointernapp.domain.usecase.GetProductsUseCase
 import com.jeongu.barointernapp.domain.usecase.SaveProductsUseCase
 import com.jeongu.barointernapp.domain.usecase.UpdateLikeUseCase
@@ -24,7 +25,8 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val getProductsUseCase: GetProductsUseCase,
     private val saveProductsUseCase: SaveProductsUseCase,
-    private val updateLikeUseCase: UpdateLikeUseCase
+    private val updateLikeUseCase: UpdateLikeUseCase,
+    private val deleteProductUseCase: DeleteProductUseCase
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
     val uiState = _uiState.asStateFlow()
@@ -144,6 +146,39 @@ class HomeViewModel @Inject constructor(
                 currentMap.toMutableMap().apply {
                     this[updatedProduct.id] = updatedProduct.likeCount
                 }
+            }
+        }
+    }
+
+    fun deleteProduct(productId: Int) {
+        viewModelScope.launch {
+            try {
+                // 로컬 DB에서 상품 삭제
+                deleteProductUseCase(productId)
+
+                // UI 상태 업데이트 (성공 상태일 경우에만)
+                if (_uiState.value is HomeUiState.Success) {
+                    val currentProducts = (_uiState.value as HomeUiState.Success).products
+                    val updatedProducts = currentProducts.filter { it.id != productId }
+                    _uiState.value = HomeUiState.Success(updatedProducts)
+
+                    // 좋아요 맵에서도 제거
+                    _likedMap.update { currentMap ->
+                        currentMap.toMutableMap().apply {
+                            remove(productId)
+                        }
+                    }
+
+                    // 좋아요 수 맵에서도 제거
+                    _likeCountMap.update { currentMap ->
+                        currentMap.toMutableMap().apply {
+                            remove(productId)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                // 삭제 중 오류 발생 시 처리
+                Log.e("HomeViewModel", "Failed to delete product: ${e.message}")
             }
         }
     }

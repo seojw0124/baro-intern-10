@@ -2,10 +2,15 @@ package com.jeongu.barointernapp.presentation.screen.home
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,6 +28,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -33,13 +39,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,6 +58,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
@@ -73,7 +83,12 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
+    // Snackbar 상태
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // 삭제 대화상자 상태
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var productToDelete by remember { mutableStateOf<ProductModel?>(null) }
 
     val showScrollToTop by remember {
         derivedStateOf {
@@ -81,7 +96,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
         }
     }
 
-    // 화면 진입 시 상품 목록을 다시 로드 (좋아요 상태 등이 변경됐을 수 있음)
+    // 화면 진입 시 상품 목록을 다시 로드
     LaunchedEffect(Unit) {
         viewModel.loadProducts()
     }
@@ -94,6 +109,41 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
         updatedProduct?.let {
             viewModel.updateProductInList(it)
         }
+    }
+
+    // 삭제 대화상자
+    if (showDeleteDialog && productToDelete != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteDialog = false
+                productToDelete = null
+            },
+            title = { Text("상품 삭제") },
+            text = { Text("'${productToDelete?.title}' 상품을 삭제하시겠습니까?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    // 상품 삭제 처리
+                    productToDelete?.let { product ->
+                        viewModel.deleteProduct(product.id)
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar("상품이 삭제되었습니다.")
+                        }
+                    }
+                    showDeleteDialog = false
+                    productToDelete = null
+                }) {
+                    Text("확인")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showDeleteDialog = false
+                    productToDelete = null
+                }) {
+                    Text("취소")
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -125,7 +175,6 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                         }
                     }
 
-                    // 나머지 코드는 동일
                     is HomeUiState.Success -> {
                         val products = (uiState as HomeUiState.Success).products
                         LazyColumn(
@@ -134,7 +183,10 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                                 .fillMaxSize()
                                 .weight(1f)
                         ) {
-                            items(products) { product ->
+                            items(
+                                items = products,
+                                key = { it.id } // 각 아이템의 고유 키 지정
+                            ) { product ->
                                 ProductItem(
                                     product = product,
                                     isLiked = likedMap[product.id] ?: false,
@@ -151,13 +203,28 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                                             updatedProduct
                                         )
                                         navController.navigate("product_detail/${product.id}")
-                                    }
+                                    },
+                                    onLongClick = {
+                                        // 길게 클릭 시 삭제 대화상자 표시
+                                        productToDelete = product
+                                        showDeleteDialog = true
+                                    },
+                                    // 아이템 애니메이션 적용
+                                    modifier = Modifier
+                                        .padding(horizontal = 16.dp, vertical = 10.dp)
+                                        .animateItem(
+                                            fadeOutSpec = spring(
+                                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                                stiffness = Spring.StiffnessLow
+                                            )
+                                        )
                                 )
                             }
                         }
                     }
 
                     is HomeUiState.Error -> {
+                        // 에러 상태 처리 (기존 코드와 동일)
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -202,29 +269,36 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ProductItem(
     product: ProductModel,
     isLiked: Boolean,
     likeCount: Int,
     onLikeClick: () -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    modifier: Modifier
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 10.dp)
-            .clickable { onClick() },
+            // combinedClickable로 변경하여 일반 클릭과 길게 클릭 모두 처리
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            ),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
+        // 기존 내용 유지
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 130.dp)
         ) {
-            // 이미지 로딩 (URL 또는 리소스 구분)
+            // 이미지 로딩
             AsyncImage(
                 model = product.imageUrl,
                 contentDescription = stringResource(id = R.string.description_product_thumbnail),
@@ -262,10 +336,7 @@ fun ProductItem(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
-                        text = stringResource(
-                            R.string.format_prodcut_price,
-                            NumberFormat.getNumberInstance(Locale.KOREA).format(product.price)
-                        ),
+                        text = "${product.price}원",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -293,7 +364,7 @@ fun ProductItem(
                         onClick = onLikeClick
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "$likeCount") // 실시간 좋아요 수 표시
+                    Text(text = "$likeCount")
                 }
             }
         }
