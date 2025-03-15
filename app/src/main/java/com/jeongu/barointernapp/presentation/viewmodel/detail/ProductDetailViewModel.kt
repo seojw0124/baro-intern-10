@@ -1,4 +1,4 @@
-package com.jeongu.barointernapp.detail
+package com.jeongu.barointernapp.presentation.viewmodel.detail
 
 import androidx.lifecycle.ViewModel
 import com.jeongu.barointernapp.SampleProduct
