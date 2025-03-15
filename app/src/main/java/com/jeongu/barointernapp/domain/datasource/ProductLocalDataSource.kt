@@ -6,7 +6,7 @@ interface ProductLocalDataSource {
 
     suspend fun getProducts(): List<ProductEntity>
 
-    suspend fun getProduct(productId: Int): ProductEntity?
+    suspend fun getProductById(productId: Int): ProductEntity?
 
     suspend fun saveProducts(products: List<ProductEntity>)
 

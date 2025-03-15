@@ -1,5 +1,6 @@
 package com.jeongu.barointernapp.presentation.screen.home
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -47,6 +48,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.jeongu.barointernapp.R
@@ -75,6 +77,16 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
     // 화면 진입 시 상품 목록을 다시 로드 (좋아요 상태 등이 변경됐을 수 있음)
     LaunchedEffect(Unit) {
         viewModel.loadProducts()
+    }
+
+    // 업데이트된 제품 정보가 있는지 확인
+    val updatedProduct = navController.currentBackStackEntry?.savedStateHandle?.get<ProductModel>("updatedProduct")
+
+    // 업데이트된 제품 정보가 있으면 ViewModel에 전달
+    LaunchedEffect(updatedProduct) {
+        updatedProduct?.let {
+            viewModel.updateProductInList(it)
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -108,6 +120,14 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                                 likeCount = likeCountMap[product.id] ?: product.likeCount, // 실시간 좋아요 수 전달
                                 onLikeClick = { viewModel.toggleLike(product.id) },
                                 onClick = {
+                                    // 현재 최신 좋아요 상태를 반영한 제품 객체 생성
+                                    val updatedProduct = product.copy(
+                                        isLiked = likedMap[product.id] ?: false,
+                                        likeCount = likeCountMap[product.id] ?: product.likeCount
+                                    )
+
+                                    // 업데이트된 제품 객체를 savedStateHandle에 저장
+                                    navController.currentBackStackEntry?.savedStateHandle?.set("product", updatedProduct)
                                     navController.navigate("product_detail/${product.id}")
                                 }
                             )

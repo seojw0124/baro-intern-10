@@ -129,4 +129,22 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
+    fun updateProductInList(updatedProduct: ProductModel) {
+        viewModelScope.launch {
+            // 좋아요 상태 업데이트
+            _likedMap.update { currentMap ->
+                currentMap.toMutableMap().apply {
+                    this[updatedProduct.id] = updatedProduct.isLiked
+                }
+            }
+
+            // 좋아요 수 업데이트
+            _likeCountMap.update { currentMap ->
+                currentMap.toMutableMap().apply {
+                    this[updatedProduct.id] = updatedProduct.likeCount
+                }
+            }
+        }
+    }
 }

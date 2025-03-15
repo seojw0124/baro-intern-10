@@ -11,8 +11,8 @@ class ProductLocalDataSourceImpl @Inject constructor(
     override suspend fun getProducts(): List<ProductEntity> =
         productDao.getProducts().map { it.toData() }
 
-    override suspend fun getProduct(productId: Int): ProductEntity? =
-        productDao.getProduct(productId)?.toData()
+    override suspend fun getProductById(productId: Int): ProductEntity? =
+        productDao.getProductById(productId)?.toData()
 
     override suspend fun saveProducts(products: List<ProductEntity>) {
         productDao.insert(products.map { it.toLocal() })
