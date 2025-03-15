@@ -9,8 +9,17 @@ import com.jeongu.barointernapp.data.model.ProductLocal
 interface ProductDao {
 
     @Insert
-    suspend fun insert(product: ProductLocal)
+    suspend fun insert(products: List<ProductLocal>)
 
     @Query("SELECT * FROM ${RoomConstant.Table.PRODUCTS} WHERE id = :productId")
-    suspend fun getProduct(productId: Long): ProductLocal?
+    suspend fun getProduct(productId: Int): ProductLocal?
+
+    @Query("SELECT * FROM ${RoomConstant.Table.PRODUCTS}")
+    suspend fun getProducts(): List<ProductLocal>
+
+    @Query("DELETE FROM ${RoomConstant.Table.PRODUCTS} WHERE id = :productId")
+    suspend fun delete(productId: Int)
+
+    @Query("UPDATE ${RoomConstant.Table.PRODUCTS} SET isLiked = :isLiked WHERE id = :productId")
+    suspend fun updateLike(productId: Int, isLiked: Boolean)
 }
