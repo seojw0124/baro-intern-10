@@ -3,20 +3,12 @@ package com.jeongu.barointernapp
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.jeongu.barointernapp.detail.ProductDetailScreen
-import com.jeongu.barointernapp.home.HomeScreen
-import com.jeongu.barointernapp.ui.theme.BaroInternAppTheme
+import com.jeongu.barointernapp.presentation.screen.detail.ProductDetailScreen
+import com.jeongu.barointernapp.presentation.screen.home.HomeScreen
+import com.jeongu.barointernapp.presentation.theme.BaroInternAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

@@ -1,4 +1,4 @@
-package com.jeongu.barointernapp.ui.theme
+package com.jeongu.barointernapp.presentation.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

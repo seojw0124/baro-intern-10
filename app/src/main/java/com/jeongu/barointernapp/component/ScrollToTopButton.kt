@@ -16,8 +16,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.jeongu.barointernapp.R
-import com.jeongu.barointernapp.ui.theme.Carrot
-import com.jeongu.barointernapp.ui.theme.Gray100
+import com.jeongu.barointernapp.presentation.theme.Carrot
+import com.jeongu.barointernapp.presentation.theme.Gray100
 
 @Composable
 fun ScrollToTopButton(
