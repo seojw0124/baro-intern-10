@@ -2,13 +2,14 @@ package com.jeongu.barointernapp.data.datasource.local
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.jeongu.barointernapp.data.model.ProductLocal
 
 @Dao
 interface ProductDao {
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(products: List<ProductLocal>)
 
     @Query("SELECT * FROM ${RoomConstant.Table.PRODUCTS} WHERE id = :productId")
