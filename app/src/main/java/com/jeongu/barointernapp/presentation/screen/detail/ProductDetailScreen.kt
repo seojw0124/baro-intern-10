@@ -79,46 +79,12 @@ fun ProductDetailScreen(
 
     // 스크롤 상태 관리
     val scrollState = rememberScrollState()
-    val isScrollable = scrollState.maxValue > 0
-    val scrollBehavior = if (isScrollable) {
-        TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-    } else {
-        TopAppBarDefaults.pinnedScrollBehavior()
-    }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("상품 상세") },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        // 뒤로 가기 전에 변경된 좋아요 상태를 전달
-                        (uiState as ProductDetailState.Success).product.let { updatedProduct ->
-                            navController.previousBackStackEntry?.savedStateHandle?.set("updatedProduct", updatedProduct)
-                        }
-                        navController.popBackStack()
-                    }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_arrow_back),
-                            contentDescription = "뒤로가기"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = White,
-                    scrolledContainerColor = White.copy(alpha = 0.95f)
-                ),
-                scrollBehavior = scrollBehavior
-            )
-        },
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
-    ) { paddingValues ->
+    Box(modifier = Modifier.fillMaxSize()) {
         when (uiState) {
             is ProductDetailState.Loading -> {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
@@ -127,79 +93,101 @@ fun ProductDetailScreen(
 
             is ProductDetailState.Success -> {
                 val productData = (uiState as ProductDetailState.Success).product
-                Box(
+
+                // 스크롤 가능한 콘텐츠 영역 (TopAppBar 포함)
+                Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues)
+                        .verticalScroll(scrollState)
+                        .padding(bottom = 80.dp) // 하단 액션바 높이만큼 패딩
                 ) {
-                    // 스크롤 가능한 콘텐츠 영역
-                    Column(
+                    // 커스텀 TopAppBar - 스크롤 영역 내에 포함
+                    Row(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(scrollState)
-                            .padding(bottom = 80.dp)
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // 상품 이미지
-                        AsyncImage(
-                            model = productData.imageUrl,
-                            contentDescription = stringResource(R.string.description_product_detail_image),
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(5f / 4f)
-                        )
-
-                        // 판매자 정보 영역
-                        SellerInfoSection(
-                            seller = productData.seller,
-                            location = productData.tradingPlace
-                        )
-
-                        // 구분선
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            thickness = 2.dp,
-                            color = Gray300
-                        )
-
-                        // 상품 정보 영역
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 18.dp)
-                        ) {
-                            Text(
-                                text = productData.title,
-                                style = MaterialTheme.typography.titleLarge.copy(
-                                    fontSize = 24.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            )
-
-                            Spacer(modifier = Modifier.height(10.dp))
-
-                            Text(
-                                text = productData.introduction,
-                                style = MaterialTheme.typography.bodyMedium
+                        IconButton(onClick = {
+                            // 뒤로 가기 전에 변경된 좋아요 상태를 전달
+                            if (uiState is ProductDetailState.Success) {
+                                (uiState as ProductDetailState.Success).product.let { updatedProduct ->
+                                    navController.previousBackStackEntry?.savedStateHandle?.set("updatedProduct", updatedProduct)
+                                }
+                            }
+                            navController.popBackStack()
+                        }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_arrow_back),
+                                contentDescription = "뒤로가기"
                             )
                         }
+
+                        Text(
+                            text = "상품 상세",
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(start = 16.dp)
+                        )
                     }
 
-                    // 하단 액션바 (고정 위치)
-                    BottomActionBar(
-                        price = productData.price,
-                        isLiked = productData.isLiked, // 현재 제품의 좋아요 상태 사용
-                        onLikeClick = { viewModel.toggleLike() }, // 좋아요 토글 함수 호출
-                        modifier = Modifier.align(Alignment.BottomCenter)
+                    // 상품 이미지
+                    AsyncImage(
+                        model = productData.imageUrl,
+                        contentDescription = stringResource(R.string.description_product_detail_image),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(5f / 4f)
                     )
+
+                    // 판매자 정보 영역
+                    SellerInfoSection(
+                        seller = productData.seller,
+                        location = productData.tradingPlace
+                    )
+
+                    // 구분선
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        thickness = 2.dp,
+                        color = Gray300
+                    )
+
+                    // 상품 정보 영역
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 18.dp)
+                    ) {
+                        Text(
+                            text = productData.title,
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Text(
+                            text = productData.introduction,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
+
+                // 하단 액션바 (고정 위치)
+                BottomActionBar(
+                    price = productData.price,
+                    isLiked = productData.isLiked,
+                    onLikeClick = { viewModel.toggleLike() },
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                )
             }
 
             is ProductDetailState.Error -> {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(text = (uiState as ProductDetailState.Error).message)
