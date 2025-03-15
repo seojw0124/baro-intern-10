@@ -24,23 +24,7 @@ data class Seller(
 )
 
 fun List<ProductEntity>.toDomain(): List<Product> = map {
-    Product(
-        id = it.id,
-        imageUrl = it.imageUrl,
-        title = it.title,
-        introduction = it.introduction,
-        price = it.price,
-        tradingPlace = it.tradingPlace,
-        likeCount = it.likeCount,
-        commentCount = it.commentCount,
-        isLiked = it.isLiked,
-        seller = Seller(
-            id = it.seller.id,
-            name = it.seller.name,
-            profileImageUrl = it.seller.profileImageUrl,
-            mannerTemperature = it.seller.mannerTemperature
-        )
-    )
+    it.toDomain()
 }
 
 fun ProductEntity.toDomain(): Product = Product(

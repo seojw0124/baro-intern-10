@@ -27,5 +27,6 @@ internal object LocalRoomModule {
     }
 
     @Provides
+    @Singleton
     fun provideInterviewDao(appDatabase: AppDatabase): ProductDao = appDatabase.productDao()
 }
