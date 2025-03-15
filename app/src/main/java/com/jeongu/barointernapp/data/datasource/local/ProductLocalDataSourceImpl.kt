@@ -22,7 +22,7 @@ class ProductLocalDataSourceImpl @Inject constructor(
         productDao.delete(productId)
     }
 
-    override suspend fun updateLike(productId: Int, isLiked: Boolean) {
-        productDao.updateLike(productId, isLiked)
+    override suspend fun updateLike(productId: Int, isLiked: Boolean, likeDelta: Int) {
+        productDao.updateLike(productId, isLiked, likeDelta)
     }
 }

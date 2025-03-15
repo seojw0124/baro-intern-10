@@ -7,6 +7,7 @@ class UpdateLikeUseCase @Inject constructor(
     private val productRepository: ProductRepository
 ) {
     suspend operator fun invoke(productId: Int, isLiked: Boolean) {
-        productRepository.updateLike(productId, isLiked)
+        val delta = if (isLiked) 1 else -1
+        productRepository.updateLike(productId, isLiked, delta)
     }
 }

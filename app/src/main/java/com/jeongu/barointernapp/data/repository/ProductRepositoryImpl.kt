@@ -33,7 +33,7 @@ internal class ProductRepositoryImpl @Inject constructor(
         productLocalDataSource.deleteProduct(productId)
     }
 
-    override suspend fun updateLike(productId: Int, isLiked: Boolean) {
-        productLocalDataSource.updateLike(productId, isLiked)
+    override suspend fun updateLike(productId: Int, isLiked: Boolean, likeDelta: Int) {
+        productLocalDataSource.updateLike(productId, isLiked, likeDelta)
     }
 }

@@ -62,6 +62,7 @@ import kotlinx.coroutines.launch
 fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     val likedMap by viewModel.likedMap.collectAsState()
+    val likeCountMap by viewModel.likeCountMap.collectAsState()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -104,6 +105,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                             ProductItem(
                                 product = product,
                                 isLiked = likedMap[product.id] ?: false,
+                                likeCount = likeCountMap[product.id] ?: product.likeCount, // 실시간 좋아요 수 전달
                                 onLikeClick = { viewModel.toggleLike(product.id) },
                                 onClick = {
                                     navController.navigate("product_detail/${product.id}")
@@ -161,6 +163,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
 fun ProductItem(
     product: ProductModel,
     isLiked: Boolean,
+    likeCount: Int,
     onLikeClick: () -> Unit,
     onClick: () -> Unit
 ) {
@@ -244,7 +247,7 @@ fun ProductItem(
                         onClick = onLikeClick
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "${product.likeCount}")
+                    Text(text = "$likeCount") // 실시간 좋아요 수 표시
                 }
             }
         }

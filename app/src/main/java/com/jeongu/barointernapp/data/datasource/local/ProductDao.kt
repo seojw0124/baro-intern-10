@@ -21,6 +21,6 @@ interface ProductDao {
     @Query("DELETE FROM ${RoomConstant.Table.PRODUCTS} WHERE id = :productId")
     suspend fun delete(productId: Int)
 
-    @Query("UPDATE ${RoomConstant.Table.PRODUCTS} SET isLiked = :isLiked WHERE id = :productId")
-    suspend fun updateLike(productId: Int, isLiked: Boolean)
+    @Query("UPDATE ${RoomConstant.Table.PRODUCTS} SET isLiked = :isLiked, likeCount = likeCount + :likeDelta WHERE id = :productId")
+    suspend fun updateLike(productId: Int, isLiked: Boolean, likeDelta: Int)
 }

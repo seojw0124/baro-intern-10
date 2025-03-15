@@ -12,5 +12,5 @@ interface ProductLocalDataSource {
 
     suspend fun deleteProduct(productId: Int)
 
-    suspend fun updateLike(productId: Int, isLiked: Boolean)
+    suspend fun updateLike(productId: Int, isLiked: Boolean, likeDelta: Int)
 }

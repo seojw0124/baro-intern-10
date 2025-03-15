@@ -14,5 +14,5 @@ interface ProductRepository {
 
     suspend fun deleteProduct(productId: Int)
 
-    suspend fun updateLike(productId: Int, isLiked: Boolean)
+    suspend fun updateLike(productId: Int, isLiked: Boolean, delta: Int)
 }
