@@ -22,12 +22,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -40,20 +43,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.jeongu.barointernapp.R
 import com.jeongu.barointernapp.SampleProduct
 import com.jeongu.barointernapp.component.HomeToolbar
 import com.jeongu.barointernapp.component.ScrollToTopButton
+import com.jeongu.barointernapp.presentation.model.HomeUiState
+import com.jeongu.barointernapp.presentation.model.ProductModel
 import com.jeongu.barointernapp.presentation.viewmodel.home.HomeViewModel
 import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
-    val productList by viewModel.productList.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     val likedMap by viewModel.likedMap.collectAsState()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -64,25 +71,71 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
         }
     }
 
+    // 화면 진입 시 상품 목록을 다시 로드 (좋아요 상태 등이 변경됐을 수 있음)
+    LaunchedEffect(Unit) {
+        viewModel.loadProducts()
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             HomeToolbar()
 
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f)
-            ) {
-                items(productList) { product ->
-                    ProductItem(
-                        product = product,
-                        isLiked = likedMap[product.id] ?: false,
-                        onLikeClick = { viewModel.toggleLike(product.id) },
-                        onClick = {
-                            navController.navigate("product_detail/${product.id}")
+            when (uiState) {
+                is HomeUiState.Loading -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+
+                is HomeUiState.Success -> {
+                    val products = (uiState as HomeUiState.Success).products
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f)
+                    ) {
+                        items(products) { product ->
+                            ProductItem(
+                                product = product,
+                                isLiked = likedMap[product.id] ?: false,
+                                onLikeClick = { viewModel.toggleLike(product.id) },
+                                onClick = {
+                                    navController.navigate("product_detail/${product.id}")
+                                }
+                            )
                         }
-                    )
+                    }
+                }
+
+                is HomeUiState.Error -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Text(
+                                text = (uiState as HomeUiState.Error).message,
+                                style = MaterialTheme.typography.bodyLarge,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 24.dp)
+                            )
+
+                            Button(onClick = { viewModel.loadProducts() }) {
+                                Text("다시 시도")
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -106,7 +159,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
 
 @Composable
 fun ProductItem(
-    product: SampleProduct,
+    product: ProductModel,
     isLiked: Boolean,
     onLikeClick: () -> Unit,
     onClick: () -> Unit
@@ -123,16 +176,16 @@ fun ProductItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 130.dp) // 최소 높이만 설정하고 최대 높이는 제한하지 않음
+                .heightIn(min = 130.dp)
         ) {
-            // 이미지 크기는 130dp 유지
-            Image(
-                painter = painterResource(product.image),
+            // 이미지 로딩 (URL 또는 리소스 구분)
+            AsyncImage(
+                model = product.imageUrl,
                 contentDescription = stringResource(id = R.string.description_product_thumbnail),
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(130.dp)
-                    .clip(RoundedCornerShape(10.dp)),
-                contentScale = ContentScale.Crop
+                    .clip(RoundedCornerShape(10.dp))
             )
 
             // 오른쪽 콘텐츠 영역
@@ -140,12 +193,11 @@ fun ProductItem(
                 modifier = Modifier
                     .weight(1f)
                     .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.SpaceBetween // 콘텐츠와 아이콘 사이 공간 분배
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
                 // 상단 콘텐츠 영역
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = product.title,
@@ -157,7 +209,7 @@ fun ProductItem(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
-                        text = "고양시 일산동구",
+                        text = product.tradingPlace,
                         style = MaterialTheme.typography.bodySmall
                     )
 
@@ -173,7 +225,7 @@ fun ProductItem(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp), // 상단 콘텐츠와 간격 유지
+                        .padding(top = 8.dp),
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -183,7 +235,7 @@ fun ProductItem(
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "15")
+                    Text(text = "${product.commentCount}")
 
                     Spacer(modifier = Modifier.width(8.dp))
 
@@ -192,7 +244,7 @@ fun ProductItem(
                         onClick = onLikeClick
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "26")
+                    Text(text = "${product.likeCount}")
                 }
             }
         }
