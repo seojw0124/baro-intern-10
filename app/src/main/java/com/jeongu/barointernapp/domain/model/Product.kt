@@ -16,13 +16,6 @@ data class Product(
     val seller: Seller
 )
 
-data class Seller(
-    val id: Int,
-    val name: String,
-    val profileImageUrl: String,
-    val mannerTemperature: Double
-)
-
 fun List<ProductEntity>.toDomain(): List<Product> = map {
     it.toDomain()
 }
