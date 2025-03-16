@@ -38,12 +38,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -250,7 +254,10 @@ fun SellerInfoSection(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "${seller.mannerTemperature} °C",
+                    text = stringResource(
+                        R.string.format_manner_temperature,
+                        seller.mannerTemperature
+                    ),
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = getTemperatureColor(seller.mannerTemperature)
                     )
@@ -262,7 +269,16 @@ fun SellerInfoSection(
                     text = stringResource(id = R.string.label_manner_temperature),
                     style = MaterialTheme.typography.labelSmall.copy(
                         color = Gray300
-                    )
+                    ),
+                    modifier = Modifier.drawWithContent {
+                        drawContent()
+                        // 텍스트 아래에 2dp 높이의 밑줄 그리기
+                        drawRect(
+                            color = Gray300,
+                            topLeft = Offset(0f, size.height - 2.dp.toPx()),
+                            size = Size(size.width, 2.dp.toPx())
+                        )
+                    }
                 )
             }
         }

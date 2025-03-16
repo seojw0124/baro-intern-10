@@ -4,6 +4,7 @@
     <!--  Common  -->
     <string name="description_like_icon">좋아요 아이콘 이미지</string>
     <string name="format_prodcut_price">%1$s원</string>
+    <string name="format_manner_temperature">%1$s °C</string>
 
     <!--  Toolbar  -->
     <string name="label_home_toolbar_title">르탄동</string>
@@ -18,7 +19,6 @@
     <string name="description_product_detail_image">상품 상세 이미지</string>
     <string name="description_seller_profile_image">판매자 프로필 이미지</string>
     <string name="description_manner_grade_icon">매너 온도 이모티콘</string>
-    <string name="format_manner_temperature">%.1f °C</string>
     <string name="label_manner_temperature"><u>매너온도</u></string>
     <string name="btn_label_chat">채팅하기</string>
     <string name="message_add_interest_list">관심 목록에 추가되었습니다.</string>
