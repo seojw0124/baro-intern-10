@@ -1,4 +1,6 @@
-package com.jeongu.barointernapp
+package com.jeongu.barointernapp.presentation
+
+import com.jeongu.barointernapp.R
 
 object Storage {
 

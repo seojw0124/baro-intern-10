@@ -1,14 +1,11 @@
 package com.jeongu.barointernapp.presentation.screen.home
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -58,22 +55,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.jeongu.barointernapp.R
-import com.jeongu.barointernapp.SampleProduct
-import com.jeongu.barointernapp.component.HomeToolbar
-import com.jeongu.barointernapp.component.ScrollToTopButton
+import com.jeongu.barointernapp.presentation.component.HomeToolbar
+import com.jeongu.barointernapp.presentation.component.ScrollToTopButton
 import com.jeongu.barointernapp.presentation.model.HomeUiState
 import com.jeongu.barointernapp.presentation.model.ProductModel
 import com.jeongu.barointernapp.presentation.viewmodel.home.HomeViewModel
 import kotlinx.coroutines.launch
-import java.text.NumberFormat
-import java.util.Locale
 
 @Composable
 fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {

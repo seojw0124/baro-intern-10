@@ -1,4 +1,4 @@
-package com.jeongu.barointernapp.component
+package com.jeongu.barointernapp.presentation.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

@@ -1,4 +1,4 @@
-package com.jeongu.barointernapp
+package com.jeongu.barointernapp.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

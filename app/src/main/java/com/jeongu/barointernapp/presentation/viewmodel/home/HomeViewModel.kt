@@ -3,8 +3,6 @@ package com.jeongu.barointernapp.presentation.viewmodel.home
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jeongu.barointernapp.SampleProduct
-import com.jeongu.barointernapp.Storage
 import com.jeongu.barointernapp.domain.usecase.DeleteProductUseCase
 import com.jeongu.barointernapp.domain.usecase.GetProductsUseCase
 import com.jeongu.barointernapp.domain.usecase.SaveProductsUseCase
@@ -14,9 +12,7 @@ import com.jeongu.barointernapp.presentation.model.ProductModel
 import com.jeongu.barointernapp.presentation.model.toPresentation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
