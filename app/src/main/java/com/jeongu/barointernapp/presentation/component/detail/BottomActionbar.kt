@@ -47,7 +47,6 @@ fun BottomActionBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween // 변경: spacedBy에서 SpaceBetween으로
         ) {
-            // 좋아요 버튼
             IconButton(onClick = onLikeClick) {
                 Icon(
                     painter = painterResource(
@@ -58,7 +57,6 @@ fun BottomActionBar(
                 )
             }
 
-            // 가격 정보 - 중앙 정렬을 위해 Box로 감싸기
             Box(
                 modifier = Modifier.weight(1f),
                 contentAlignment = Alignment.Center
@@ -74,9 +72,8 @@ fun BottomActionBar(
                 )
             }
 
-            // 채팅하기 버튼
             Button(
-                onClick = { /* 채팅 기능 */ },
+                onClick = { },
                 shape = RoundedCornerShape(8.dp),
             ) {
                 Text("채팅하기")

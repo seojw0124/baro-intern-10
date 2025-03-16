@@ -47,7 +47,6 @@ fun SellerInfoSection(
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 프로필 이미지
             AsyncImage(
                 model = seller.profileImageUrl,
                 contentDescription = stringResource(id = R.string.description_seller_profile_image),
@@ -58,7 +57,6 @@ fun SellerInfoSection(
                     .background(MaterialTheme.colorScheme.surface)
             )
 
-            // 판매자 이름 및 위치 정보
             Column(
                 modifier = Modifier
                     .padding(start = 10.dp)
@@ -79,7 +77,6 @@ fun SellerInfoSection(
                 )
             }
 
-            // 매너 온도
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -102,7 +99,6 @@ fun SellerInfoSection(
                     ),
                     modifier = Modifier.drawWithContent {
                         drawContent()
-                        // 텍스트 아래에 2dp 높이의 밑줄 그리기
                         drawRect(
                             color = Gray300,
                             topLeft = Offset(0f, size.height - 2.dp.toPx()),

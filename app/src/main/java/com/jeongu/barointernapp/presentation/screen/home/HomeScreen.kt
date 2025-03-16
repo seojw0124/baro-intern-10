@@ -5,38 +5,21 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -48,17 +31,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
 import com.jeongu.barointernapp.R
 import com.jeongu.barointernapp.presentation.component.home.DeleteDialog
 import com.jeongu.barointernapp.presentation.component.home.HomeToolbar
@@ -68,8 +45,6 @@ import com.jeongu.barointernapp.presentation.model.HomeUiState
 import com.jeongu.barointernapp.presentation.model.ProductModel
 import com.jeongu.barointernapp.presentation.viewmodel.home.HomeViewModel
 import kotlinx.coroutines.launch
-import java.text.NumberFormat
-import java.util.Locale
 
 @Composable
 fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
@@ -79,10 +54,8 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-    // Snackbar 상태
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // 삭제 대화상자 상태
     var showDeleteDialog by remember { mutableStateOf(false) }
     var productToDelete by remember { mutableStateOf<ProductModel?>(null) }
 
@@ -92,22 +65,20 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
         }
     }
 
-    // 화면 진입 시 상품 목록을 다시 로드
+    val context = LocalContext.current
+
     LaunchedEffect(Unit) {
         viewModel.loadProducts()
     }
 
-    // 업데이트된 제품 정보가 있는지 확인
     val updatedProduct = navController.currentBackStackEntry?.savedStateHandle?.get<ProductModel>("updatedProduct")
 
-    // 업데이트된 제품 정보가 있으면 ViewModel에 전달
     LaunchedEffect(updatedProduct) {
         updatedProduct?.let {
             viewModel.updateProductInList(it)
         }
     }
 
-    // 삭제 대화상자 표시
     if (showDeleteDialog && productToDelete != null) {
         DeleteDialog(
             product = productToDelete!!,
@@ -138,7 +109,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                 HomeToolbar(
                     onNotificationClick = {
                         coroutineScope.launch {
-                            snackbarHostState.showSnackbar("새로운 알림이 없습니다.")
+                            snackbarHostState.showSnackbar(context.getString(R.string.snackbar_no_notification))
                         }
                     }
                 )
@@ -173,7 +144,6 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                                     likeCount = likeCountMap[product.id] ?: product.likeCount,
                                     onLikeClick = { viewModel.toggleLike(product.id) },
                                     onClick = {
-                                        // 최신 좋아요 상태가 반영된 제품 객체 생성
                                         val updatedProduct = product.copy(
                                             isLiked = likedMap[product.id] ?: false,
                                             likeCount = likeCountMap[product.id] ?: product.likeCount
@@ -185,11 +155,9 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                                         navController.navigate("product_detail/${product.id}")
                                     },
                                     onLongClick = {
-                                        // 길게 클릭 시 삭제 대화상자 표시
                                         productToDelete = product
                                         showDeleteDialog = true
                                     },
-                                    // 아이템 애니메이션 적용
                                     modifier = Modifier
                                         .padding(horizontal = 16.dp, vertical = 10.dp)
                                         .animateItem(
@@ -204,7 +172,6 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                     }
 
                     is HomeUiState.Error -> {
-                        // 에러 상태 표시
                         ErrorContent(
                             message = (uiState as HomeUiState.Error).message,
                             onRetry = { viewModel.loadProducts() }
@@ -231,7 +198,6 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
     }
 }
 
-// 에러 상태 표시를 위한 컴포넌트
 @Composable
 private fun ErrorContent(
     message: String,

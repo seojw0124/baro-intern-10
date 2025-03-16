@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.jeongu.barointernapp.R
 
@@ -28,7 +29,7 @@ fun DetailToolbar(
         IconButton(onClick = onBackClick) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_arrow_back),
-                contentDescription = "뒤로가기"
+                contentDescription = stringResource(R.string.description_detail_toolbar_icon)
             )
         }
 

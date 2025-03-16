@@ -33,12 +33,6 @@ fun HomeToolbar(
                 text = stringResource(R.string.label_home_toolbar_title),
                 style = MaterialTheme.typography.titleLarge
             )
-//            Spacer(modifier = Modifier.width(4.dp))
-//            Icon(
-//                painter = painterResource(id = R.drawable.ic_arrow_down),
-//                contentDescription = null,
-//                modifier = Modifier.size(16.dp)
-//            )
         }
 
         Icon(

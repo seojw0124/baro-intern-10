@@ -23,7 +23,6 @@ internal class ProductRepositoryImpl @Inject constructor(
     }
 
     override suspend fun saveProducts() {
-//        productRemoteDataSource.getProducts()하고 productLocalDataSource.saveProducts(products)를 호출하는 코드를 작성해야 합니다.
         val products = productRemoteDataSource.getProducts()
         productLocalDataSource.saveProducts(products)
     }

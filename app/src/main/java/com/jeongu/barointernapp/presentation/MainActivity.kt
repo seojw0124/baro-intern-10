@@ -15,7 +15,6 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //enableEdgeToEdge()
         setContent {
             BaroInternAppTheme {
                 val navController = rememberNavController()
@@ -24,7 +23,6 @@ class MainActivity : ComponentActivity() {
                         HomeScreen(navController = navController)
                     }
                     composable("product_detail/{productId}") { backStackEntry ->
-                        //val productId = backStackEntry.arguments?.getString("productId")?.toInt() ?: 0
                         ProductDetailScreen(navController = navController)
                     }
                 }
