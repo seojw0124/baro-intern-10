@@ -1,6 +1,5 @@
 package com.jeongu.barointernapp.data.repository
 
-import com.jeongu.barointernapp.data.model.ProductEntity
 import com.jeongu.barointernapp.domain.datasource.ProductLocalDataSource
 import com.jeongu.barointernapp.domain.datasource.ProductRemoteDataSource
 import com.jeongu.barointernapp.domain.model.Product
@@ -19,8 +18,8 @@ internal class ProductRepositoryImpl @Inject constructor(
         emit(Result.success(productLocalDataSource.getProducts().toDomain()))
     }
 
-    override suspend fun getProduct(productId: Int): Flow<Result<Product>> = flow {
-        emit(Result.success(productLocalDataSource.getProduct(productId)?.toDomain() ?: throw Exception("Product not found")))
+    override suspend fun getProductById(productId: Int): Flow<Result<Product>> = flow {
+        emit(Result.success(productLocalDataSource.getProductById(productId)?.toDomain() ?: throw Exception("Product not found")))
     }
 
     override suspend fun saveProducts() {

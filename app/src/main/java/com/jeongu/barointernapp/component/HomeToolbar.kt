@@ -1,5 +1,6 @@
 package com.jeongu.barointernapp.component
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,7 +20,9 @@ import androidx.compose.ui.unit.dp
 import com.jeongu.barointernapp.R
 
 @Composable
-fun HomeToolbar() {
+fun HomeToolbar(
+    onNotificationClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -29,21 +32,23 @@ fun HomeToolbar() {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "중고거래",
-                style = MaterialTheme.typography.titleMedium
+                text = stringResource(R.string.label_home_toolbar_title),
+                style = MaterialTheme.typography.titleLarge
             )
-            Spacer(modifier = Modifier.width(4.dp))
-            Icon(
-                painter = painterResource(id = R.drawable.ic_arrow_down),
-                contentDescription = null,
-                modifier = Modifier.size(16.dp)
-            )
+//            Spacer(modifier = Modifier.width(4.dp))
+//            Icon(
+//                painter = painterResource(id = R.drawable.ic_arrow_down),
+//                contentDescription = null,
+//                modifier = Modifier.size(16.dp)
+//            )
         }
 
         Icon(
             painter = painterResource(id = R.drawable.ic_notification),
             contentDescription = stringResource(id = R.string.description_notification_icon),
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier
+                .size(24.dp)
+                .clickable { onNotificationClick() }
         )
     }
 }

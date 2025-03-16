@@ -13,7 +13,7 @@ interface ProductDao {
     suspend fun insert(products: List<ProductLocal>)
 
     @Query("SELECT * FROM ${RoomConstant.Table.PRODUCTS} WHERE id = :productId")
-    suspend fun getProduct(productId: Int): ProductLocal?
+    suspend fun getProductById(productId: Int): ProductLocal?
 
     @Query("SELECT * FROM ${RoomConstant.Table.PRODUCTS}")
     suspend fun getProducts(): List<ProductLocal>

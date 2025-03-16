@@ -1,6 +1,6 @@
 package com.jeongu.barointernapp.presentation.screen.detail
 
-import androidx.compose.foundation.Image
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,11 +13,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -30,98 +32,122 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.jeongu.barointernapp.R
+import com.jeongu.barointernapp.presentation.model.ProductDetailState
+import com.jeongu.barointernapp.presentation.model.ProductModel
+import com.jeongu.barointernapp.presentation.model.SellerModel
 import com.jeongu.barointernapp.presentation.theme.Gray300
 import com.jeongu.barointernapp.presentation.theme.Gray700
-import com.jeongu.barointernapp.presentation.theme.Green
 import com.jeongu.barointernapp.presentation.theme.White
 import com.jeongu.barointernapp.presentation.viewmodel.detail.ProductDetailViewModel
+import java.text.NumberFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductDetailScreen(
-    productId: Int,
     viewModel: ProductDetailViewModel = hiltViewModel(),
     navController: NavController
 ) {
-    val product by viewModel.getProductById(productId).collectAsState(initial = null)
+    val product = navController.previousBackStackEntry?.savedStateHandle?.get<ProductModel>("product")
+    Log.e("asdf", "product: $product")
+
+    // 제품 상태가 있으면 ViewModel에 설정
+    LaunchedEffect(Unit) {
+        product?.let { viewModel.setProduct(it) }
+    }
+
+    // ViewModel에서 좋아요 상태 관찰
+    val uiState by viewModel.uiState.collectAsState()
 
     // 스크롤 상태 관리
     val scrollState = rememberScrollState()
 
-    // 콘텐츠가 스크롤 가능한지 여부를 확인
-    val isScrollable = scrollState.maxValue > 0
+    Box(modifier = Modifier.fillMaxSize()) {
+        when (uiState) {
+            is ProductDetailState.Loading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
 
-    // 스크롤 가능한 경우에만 enterAlwaysScrollBehavior 적용, 아닌 경우 pinnedScrollBehavior 적용
-    val scrollBehavior = if (isScrollable) {
-        TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-    } else {
-        TopAppBarDefaults.pinnedScrollBehavior()
-    }
+            is ProductDetailState.Success -> {
+                val productData = (uiState as ProductDetailState.Success).product
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("상품 상세") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_arrow_back),
-                            contentDescription = "뒤로가기"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = White,
-                    scrolledContainerColor = White.copy(alpha = 0.95f)
-                ),
-                scrollBehavior = scrollBehavior
-            )
-        },
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
-    ) { paddingValues ->
-        product?.let { productData ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues) // Scaffold의 내부 패딩 적용
-            ) {
-                // 스크롤 가능한 콘텐츠 영역
+                // 스크롤 가능한 콘텐츠 영역 (TopAppBar 포함)
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(scrollState) // 이전 선언한 scrollState 사용
+                        .verticalScroll(scrollState)
                         .padding(bottom = 80.dp) // 하단 액션바 높이만큼 패딩
                 ) {
+                    // 커스텀 TopAppBar - 스크롤 영역 내에 포함
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = {
+                            // 뒤로 가기 전에 변경된 좋아요 상태를 전달
+                            if (uiState is ProductDetailState.Success) {
+                                (uiState as ProductDetailState.Success).product.let { updatedProduct ->
+                                    navController.previousBackStackEntry?.savedStateHandle?.set("updatedProduct", updatedProduct)
+                                }
+                            }
+                            navController.popBackStack()
+                        }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_arrow_back),
+                                contentDescription = "뒤로가기"
+                            )
+                        }
+
+                        Text(
+                            text = "상품 상세",
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(start = 16.dp)
+                        )
+                    }
+
                     // 상품 이미지
-                    Image(
-                        painter = painterResource(id = productData.image),
+                    AsyncImage(
+                        model = productData.imageUrl,
                         contentDescription = stringResource(R.string.description_product_detail_image),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .aspectRatio(5f / 4f) // 5:4 비율 유지
+                            .aspectRatio(5f / 4f)
                     )
 
                     // 판매자 정보 영역
                     SellerInfoSection(
-                        sellerName = productData.sellerName,
-                        sellerLocation = productData.tradingPlace,
-                        mannerTemperature = 36.5f
+                        seller = productData.seller,
+                        location = productData.tradingPlace
                     )
 
                     // 구분선
@@ -156,8 +182,20 @@ fun ProductDetailScreen(
 
                 // 하단 액션바 (고정 위치)
                 BottomActionBar(
+                    price = productData.price,
+                    isLiked = productData.isLiked,
+                    onLikeClick = { viewModel.toggleLike() },
                     modifier = Modifier.align(Alignment.BottomCenter)
                 )
+            }
+
+            is ProductDetailState.Error -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = (uiState as ProductDetailState.Error).message)
+                }
             }
         }
     }
@@ -165,9 +203,8 @@ fun ProductDetailScreen(
 
 @Composable
 fun SellerInfoSection(
-    sellerName: String,
-    sellerLocation: String,
-    mannerTemperature: Float
+    seller: SellerModel,
+    location: String
 ) {
     Box(
         modifier = Modifier
@@ -181,9 +218,10 @@ fun SellerInfoSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 프로필 이미지
-            Image(
-                painter = painterResource(id = R.drawable.img_profile),
+            AsyncImage(
+                model = seller.profileImageUrl,
                 contentDescription = stringResource(id = R.string.description_seller_profile_image),
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(50.dp)
                     .clip(CircleShape)
@@ -197,14 +235,14 @@ fun SellerInfoSection(
                     .weight(1f)
             ) {
                 Text(
-                    text = sellerName,
+                    text = seller.name,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold
                     )
                 )
 
                 Text(
-                    text = sellerLocation,
+                    text = location,
                     style = MaterialTheme.typography.bodySmall.copy(
                         color = Gray700
                     )
@@ -216,9 +254,12 @@ fun SellerInfoSection(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "$mannerTemperature °C",
+                    text = stringResource(
+                        R.string.format_manner_temperature,
+                        seller.mannerTemperature
+                    ),
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = Green
+                        color = getTemperatureColor(seller.mannerTemperature)
                     )
                 )
 
@@ -228,7 +269,16 @@ fun SellerInfoSection(
                     text = stringResource(id = R.string.label_manner_temperature),
                     style = MaterialTheme.typography.labelSmall.copy(
                         color = Gray300
-                    )
+                    ),
+                    modifier = Modifier.drawWithContent {
+                        drawContent()
+                        // 텍스트 아래에 2dp 높이의 밑줄 그리기
+                        drawRect(
+                            color = Gray300,
+                            topLeft = Offset(0f, size.height - 2.dp.toPx()),
+                            size = Size(size.width, 2.dp.toPx())
+                        )
+                    }
                 )
             }
         }
@@ -236,7 +286,12 @@ fun SellerInfoSection(
 }
 
 @Composable
-fun BottomActionBar(modifier: Modifier = Modifier) {
+fun BottomActionBar(
+    price: Int,
+    isLiked: Boolean,
+    onLikeClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Surface(
         modifier = modifier
             .fillMaxWidth()
@@ -249,23 +304,34 @@ fun BottomActionBar(modifier: Modifier = Modifier) {
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // 좋아요 버튼
-            IconButton(onClick = { /* 좋아요 기능 */ }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_like_outlined), // drawable 폴더의 ic_favorite 이미지 사용
-                    contentDescription = "좋아요"
-                )
+            Box(
+                modifier = Modifier.width(48.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                IconButton(onClick = onLikeClick) {
+                    Icon(
+                        painter = painterResource(
+                            id = if (isLiked) R.drawable.ic_like_filled else R.drawable.ic_like_outlined
+                        ),
+                        contentDescription = "좋아요",
+                        tint = if (isLiked) Color.Red else Color.Unspecified
+                    )
+                }
             }
-
 
             // 가격 정보
             Text(
-                text = "39,000원",
+                text = stringResource(
+                    R.string.format_prodcut_price,
+                    NumberFormat.getNumberInstance(Locale.KOREA).format(price)
+                ),
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold
                 ),
+                modifier = Modifier.weight(1f)
             )
 
             // 채팅하기 버튼
@@ -278,3 +344,15 @@ fun BottomActionBar(modifier: Modifier = Modifier) {
         }
     }
 }
+
+// 매너 온도에 따른 색상 변경 함수
+@Composable
+fun getTemperatureColor(temperature: Double): Color {
+    return when {
+        temperature >= 70 -> Color(0xFF00B493) // 높음 - 초록색
+        temperature >= 50 -> Color(0xFF2E7D32) // 중간 - 진한 초록
+        temperature >= 30 -> Color(0xFFFF9800) // 낮음 - 주황색
+        else -> Color(0xFFE53935) // 매우 낮음 - 빨간색
+    }
+}
+
