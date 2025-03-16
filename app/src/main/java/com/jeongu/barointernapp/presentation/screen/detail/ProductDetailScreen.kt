@@ -304,35 +304,34 @@ fun BottomActionBar(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.SpaceBetween // 변경: spacedBy에서 SpaceBetween으로
         ) {
             // 좋아요 버튼
-            Box(
-                modifier = Modifier.width(48.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                IconButton(onClick = onLikeClick) {
-                    Icon(
-                        painter = painterResource(
-                            id = if (isLiked) R.drawable.ic_like_filled else R.drawable.ic_like_outlined
-                        ),
-                        contentDescription = "좋아요",
-                        tint = if (isLiked) Color.Red else Color.Unspecified
-                    )
-                }
+            IconButton(onClick = onLikeClick) {
+                Icon(
+                    painter = painterResource(
+                        id = if (isLiked) R.drawable.ic_like_filled else R.drawable.ic_like_outlined
+                    ),
+                    contentDescription = stringResource(R.string.description_like_icon),
+                    tint = if (isLiked) Color.Red else Color.Unspecified
+                )
             }
 
-            // 가격 정보
-            Text(
-                text = stringResource(
-                    R.string.format_prodcut_price,
-                    NumberFormat.getNumberInstance(Locale.KOREA).format(price)
-                ),
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold
-                ),
-                modifier = Modifier.weight(1f)
-            )
+            // 가격 정보 - 중앙 정렬을 위해 Box로 감싸기
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(
+                        R.string.format_prodcut_price,
+                        NumberFormat.getNumberInstance(Locale.KOREA).format(price)
+                    ),
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
 
             // 채팅하기 버튼
             Button(
