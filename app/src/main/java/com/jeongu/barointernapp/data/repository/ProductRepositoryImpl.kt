@@ -3,7 +3,6 @@ package com.jeongu.barointernapp.data.repository
 import com.jeongu.barointernapp.domain.datasource.ProductLocalDataSource
 import com.jeongu.barointernapp.domain.datasource.ProductRemoteDataSource
 import com.jeongu.barointernapp.domain.model.Product
-import com.jeongu.barointernapp.domain.model.toDomain
 import com.jeongu.barointernapp.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -15,7 +14,7 @@ internal class ProductRepositoryImpl @Inject constructor(
 ) : ProductRepository {
 
     override suspend fun getProducts(): Flow<Result<List<Product>>> = flow {
-        emit(Result.success(productLocalDataSource.getProducts().toDomain()))
+        emit(Result.success(productLocalDataSource.getProducts().map { it.toDomain() }))
     }
 
     override suspend fun getProductById(productId: Int): Flow<Result<Product>> = flow {

@@ -16,24 +16,24 @@ data class Product(
     val seller: Seller
 )
 
-fun List<ProductEntity>.toDomain(): List<Product> = map {
-    it.toDomain()
-}
+//fun List<ProductEntity>.toDomain(): List<Product> = map {
+//    it.toDomain()
+//}
 
-fun ProductEntity.toDomain(): Product = Product(
-    id = id,
-    imageUrl = imageUrl,
-    title = title,
-    introduction = introduction,
-    price = price,
-    tradingPlace = tradingPlace,
-    likeCount = likeCount,
-    commentCount = commentCount,
-    isLiked = isLiked,
-    seller = Seller(
-        id = seller.id,
-        name = seller.name,
-        profileImageUrl = seller.profileImageUrl,
-        mannerTemperature = seller.mannerTemperature
-    )
-)
+//fun ProductEntity.toDomain(): Product = Product(
+//    id = id,
+//    imageUrl = imageUrl,
+//    title = title,
+//    introduction = introduction,
+//    price = price,
+//    tradingPlace = tradingPlace,
+//    likeCount = likeCount,
+//    commentCount = commentCount,
+//    isLiked = isLiked,
+//    seller = Seller(
+//        id = seller.id,
+//        name = seller.name,
+//        profileImageUrl = seller.profileImageUrl,
+//        mannerTemperature = seller.mannerTemperature
+//    )
+//)
