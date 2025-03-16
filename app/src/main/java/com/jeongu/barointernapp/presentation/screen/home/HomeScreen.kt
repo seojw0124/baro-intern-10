@@ -60,8 +60,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.jeongu.barointernapp.R
-import com.jeongu.barointernapp.presentation.component.HomeToolbar
-import com.jeongu.barointernapp.presentation.component.ScrollToTopButton
+import com.jeongu.barointernapp.presentation.component.home.DeleteDialog
+import com.jeongu.barointernapp.presentation.component.home.HomeToolbar
+import com.jeongu.barointernapp.presentation.component.home.ProductItem
+import com.jeongu.barointernapp.presentation.component.home.ScrollToTopButton
 import com.jeongu.barointernapp.presentation.model.HomeUiState
 import com.jeongu.barointernapp.presentation.model.ProductModel
 import com.jeongu.barointernapp.presentation.viewmodel.home.HomeViewModel
@@ -105,37 +107,21 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
         }
     }
 
-    // 삭제 대화상자
+    // 삭제 대화상자 표시
     if (showDeleteDialog && productToDelete != null) {
-        AlertDialog(
-            onDismissRequest = {
+        DeleteDialog(
+            product = productToDelete!!,
+            onConfirm = {
+                viewModel.deleteProduct(productToDelete!!.id)
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar("상품이 삭제되었습니다.")
+                }
                 showDeleteDialog = false
                 productToDelete = null
             },
-            title = { Text("상품 삭제") },
-            text = { Text("'${productToDelete?.title}' 상품을 삭제하시겠습니까?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    // 상품 삭제 처리
-                    productToDelete?.let { product ->
-                        viewModel.deleteProduct(product.id)
-                        coroutineScope.launch {
-                            snackbarHostState.showSnackbar("상품이 삭제되었습니다.")
-                        }
-                    }
-                    showDeleteDialog = false
-                    productToDelete = null
-                }) {
-                    Text("확인")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showDeleteDialog = false
-                    productToDelete = null
-                }) {
-                    Text("취소")
-                }
+            onDismiss = {
+                showDeleteDialog = false
+                productToDelete = null
             }
         )
     }
@@ -179,7 +165,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                         ) {
                             items(
                                 items = products,
-                                key = { it.id } // 각 아이템의 고유 키 지정
+                                key = { it.id }
                             ) { product ->
                                 ProductItem(
                                     product = product,
@@ -218,29 +204,11 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                     }
 
                     is HomeUiState.Error -> {
-                        // 에러 상태 처리 (기존 코드와 동일)
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .weight(1f),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                Text(
-                                    text = (uiState as HomeUiState.Error).message,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.padding(horizontal = 24.dp)
-                                )
-
-                                Button(onClick = { viewModel.loadProducts() }) {
-                                    Text("다시 시도")
-                                }
-                            }
-                        }
+                        // 에러 상태 표시
+                        ErrorContent(
+                            message = (uiState as HomeUiState.Error).message,
+                            onRetry = { viewModel.loadProducts() }
+                        )
                     }
                 }
             }
@@ -263,129 +231,32 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+// 에러 상태 표시를 위한 컴포넌트
 @Composable
-fun ProductItem(
-    product: ProductModel,
-    isLiked: Boolean,
-    likeCount: Int,
-    onLikeClick: () -> Unit,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit,
-    modifier: Modifier
+private fun ErrorContent(
+    message: String,
+    onRetry: () -> Unit
 ) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            // combinedClickable로 변경하여 일반 클릭과 길게 클릭 모두 처리
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick
-            ),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
     ) {
-        // 기존 내용 유지
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 130.dp)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 이미지 로딩
-            AsyncImage(
-                model = product.imageUrl,
-                contentDescription = stringResource(id = R.string.description_product_thumbnail),
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(130.dp)
-                    .clip(RoundedCornerShape(10.dp))
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 24.dp)
             )
 
-            // 오른쪽 콘텐츠 영역
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                // 상단 콘텐츠 영역
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = product.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = product.tradingPlace,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = stringResource(
-                            R.string.format_prodcut_price,
-                            NumberFormat.getNumberInstance(Locale.KOREA).format(product.price)
-                        ),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-
-                // 하단 아이콘 영역
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_comment),
-                        contentDescription = stringResource(id = R.string.description_comment_icon),
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "${product.commentCount}")
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    LikeIcon(
-                        isLiked = isLiked,
-                        onClick = onLikeClick
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "$likeCount")
-                }
+            Button(onClick = onRetry) {
+                Text("다시 시도")
             }
         }
     }
-}
-
-@Composable
-fun LikeIcon(
-    isLiked: Boolean,
-    onClick: () -> Unit
-) {
-    val iconRes = if (isLiked) R.drawable.ic_like_filled else R.drawable.ic_like_outlined
-
-    Icon(
-        painter = painterResource(id = iconRes),
-        contentDescription = stringResource(R.string.description_like_icon),
-        modifier = Modifier
-            .size(20.dp)
-            .clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
-            ) {
-                onClick()
-            },
-        tint = Color.Unspecified
-    )
 }
