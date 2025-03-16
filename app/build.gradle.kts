@@ -2,6 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.devtools.ksp)
+    alias(libs.plugins.dagger.hilt.android)
 }
 
 android {
@@ -49,6 +52,29 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
+    // Jetpack Navigation
+    implementation(libs.androidx.navigation.compose)
+    implementation (libs.androidx.hilt.navigation.compose)
+
+    // Network
+    implementation(libs.bundles.retrofit)
+    implementation(platform(libs.okhttp.bom))
+
+    // Dagger-Hilt
+    implementation(libs.hilt.android)
+    implementation(libs.androidx.lifecycle.service)
+    ksp(libs.hilt.android.compiler)
+
+    // Room
+    implementation(libs.room)
+    implementation(libs.room.ktx)
+    annotationProcessor(libs.room.compiler)
+    ksp(libs.room.compiler)
+
+    // Coil
+    implementation(libs.coil.compose)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

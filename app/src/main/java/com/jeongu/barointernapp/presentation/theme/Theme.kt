@@ -1,6 +1,5 @@
-package com.jeongu.barointernapp.ui.theme
+package com.jeongu.barointernapp.presentation.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
